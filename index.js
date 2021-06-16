@@ -114,6 +114,7 @@ const menuDepartments = (action) => {
       getDepartments()
         .then(departments => {
           console.table(departments)
+          contCheck()
         })
       break;
     case 'Add':
@@ -123,7 +124,27 @@ const menuDepartments = (action) => {
       patchDepartment()
       break;
     case 'Delete':
-      eraseDepartment()
+      getDepartments()
+        .then(departments => {
+          console.table(departments)
+          prompt({
+            type: 'list',
+            name: 'erase',
+            message: 'Which Department would you like to delete?',
+            choices: departments.map(department => ({
+              name: department.name,
+              value: department.id
+            }))
+          })
+          .then(({erase}) => {
+            deleteDepartment(erase)
+            .then(() => {
+              console.log('The Department has been deleted!')
+              contCheck()
+            })
+          })
+        })
+        .catch(err => console.log(err))
       break;
     case 'Employee Salaries in a Department':
       getDepartments()
@@ -161,6 +182,7 @@ const menuRoles = (action) => {
       getRoles()
         .then(roles => {
           console.table(roles)
+          contCheck()
         })
       break;
     case 'Add':
@@ -170,7 +192,27 @@ const menuRoles = (action) => {
       patchRole()
       break;
     case 'Delete':
-      eraseRole()
+        getRoles()
+          .then(roles => {
+            console.table(roles)
+            prompt({
+              type: 'list',
+              name: 'erase',
+              message: 'Which Role would you like to delete?',
+              choices: roles.map(role => ({
+                name: role.title,
+                value: role.id
+              }))
+            })
+              .then(({ erase }) => {
+                deleteRole(erase)
+                  .then(() => {
+                    console.log('The Role has been deleted!')
+                    contCheck()
+                  })
+              })
+          })
+          .catch(err => console.log(err))
       break;
     default:
       menuMain()
@@ -182,19 +224,40 @@ const menuRoles = (action) => {
 const menuEmployees = (action) => {
     switch (action) {
     case 'View':
-      getEmployeess()
-        .then(employeess => {
-          console.table(employeess)
+      getEmployees()
+        .then(employees => {
+          console.table(employees)
+          contCheck()
         })
       break;
     case 'Add':
-      newEmployees()
+      newEmployee()
       break;
     case 'Update':
       patchEmployees()
       break;
     case 'Delete':
-      eraseEmployees()
+        getEmployees()
+          .then(employees => {
+            console.table(employees)
+            prompt({
+              type: 'list',
+              name: 'erase',
+              message: 'Which Employee would you like to delete?',
+              choices: employees.map(employee => ({
+                name: `${employee.first_name} ${employee.last_name}`,
+                value: employee.id
+              }))
+            })
+              .then(({ erase }) => {
+                deleteEmployee(erase)
+                  .then(() => {
+                    console.log('The Employee has been deleted!')
+                    contCheck()
+                  })
+              })
+          })
+          .catch(err => console.log(err))
       break;
     case 'Filter Employees by Manager':
       viewManagers()
@@ -236,7 +299,7 @@ const newDepartment = () => {
   )
     .then(department => {
       addDepartment(department)
-        .then(department => {
+        .then(() => {
           console.log(`Department: ${department.name} Added!`)
           contCheck()
         })
@@ -271,7 +334,7 @@ const newRole = () => {
       ])
         .then(role => {
           addRole(role)
-            .then(role => {
+            .then(() => {
               console.log(`Role: ${role.title} Added!`)
               contCheck()
             })
@@ -286,7 +349,6 @@ const newEmployee = () => {
     .then(roles => {
       viewManagers()
         .then(managers => {
-          console.log(managers)
           prompt([
             {
               type: 'input',
@@ -319,7 +381,7 @@ const newEmployee = () => {
           ])
             .then(employee => {
               addEmployee(employee)
-                .then(employee => {
+                .then(() => {
                   console.log(`Employee: ${employee.first_name} ${employee.last_name} Added!`)
                   contCheck()
                 })
