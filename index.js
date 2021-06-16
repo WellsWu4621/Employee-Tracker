@@ -1,4 +1,5 @@
 const { prompt } = require('inquirer')
+const { concat } = require('rxjs')
 const db = require('./db')
 require('console.table')
 
@@ -136,13 +137,13 @@ const menuDepartments = (action) => {
               value: department.id
             }))
           })
-          .then(({erase}) => {
-            deleteDepartment(erase)
-            .then(() => {
-              console.log('The Department has been deleted!')
-              contCheck()
+            .then(({ erase }) => {
+              deleteDepartment(erase)
+                .then(() => {
+                  console.log('The Department has been deleted!')
+                  contCheck()
+                })
             })
-          })
         })
         .catch(err => console.log(err))
       break;
@@ -159,13 +160,13 @@ const menuDepartments = (action) => {
               value: department.id
             }))
           })
-          .then(({departmentid}) => {
-            salaryCheck(departmentid)
-              .then(amount => {
-                console.log(`These employees total to $${amount}`)
-                contCheck()
-              })
-          })
+            .then(({ departmentid }) => {
+              salaryCheck(departmentid)
+                .then(amount => {
+                  console.log(`These employees total to $${amount}`)
+                  contCheck()
+                })
+            })
         })
         .catch(err => console.log(err))
       break;
@@ -177,7 +178,7 @@ const menuDepartments = (action) => {
 
 // Role choice menu
 const menuRoles = (action) => {
-    switch (action) {
+  switch (action) {
     case 'View':
       getRoles()
         .then(roles => {
@@ -192,27 +193,27 @@ const menuRoles = (action) => {
       patchRole()
       break;
     case 'Delete':
-        getRoles()
-          .then(roles => {
-            console.table(roles)
-            prompt({
-              type: 'list',
-              name: 'erase',
-              message: 'Which Role would you like to delete?',
-              choices: roles.map(role => ({
-                name: role.title,
-                value: role.id
-              }))
-            })
-              .then(({ erase }) => {
-                deleteRole(erase)
-                  .then(() => {
-                    console.log('The Role has been deleted!')
-                    contCheck()
-                  })
-              })
+      getRoles()
+        .then(roles => {
+          console.table(roles)
+          prompt({
+            type: 'list',
+            name: 'erase',
+            message: 'Which Role would you like to delete?',
+            choices: roles.map(role => ({
+              name: role.title,
+              value: role.id
+            }))
           })
-          .catch(err => console.log(err))
+            .then(({ erase }) => {
+              deleteRole(erase)
+                .then(() => {
+                  console.log('The Role has been deleted!')
+                  contCheck()
+                })
+            })
+        })
+        .catch(err => console.log(err))
       break;
     default:
       menuMain()
@@ -222,7 +223,7 @@ const menuRoles = (action) => {
 
 // Employee choice menu
 const menuEmployees = (action) => {
-    switch (action) {
+  switch (action) {
     case 'View':
       getEmployees()
         .then(employees => {
@@ -237,50 +238,50 @@ const menuEmployees = (action) => {
       patchEmployees()
       break;
     case 'Delete':
-        getEmployees()
-          .then(employees => {
-            console.table(employees)
-            prompt({
-              type: 'list',
-              name: 'erase',
-              message: 'Which Employee would you like to delete?',
-              choices: employees.map(employee => ({
-                name: `${employee.first_name} ${employee.last_name}`,
-                value: employee.id
-              }))
-            })
-              .then(({ erase }) => {
-                deleteEmployee(erase)
-                  .then(() => {
-                    console.log('The Employee has been deleted!')
-                    contCheck()
-                  })
-              })
+      getEmployees()
+        .then(employees => {
+          console.table(employees)
+          prompt({
+            type: 'list',
+            name: 'erase',
+            message: 'Which Employee would you like to delete?',
+            choices: employees.map(employee => ({
+              name: `${employee.first_name} ${employee.last_name}`,
+              value: employee.id
+            }))
           })
-          .catch(err => console.log(err))
+            .then(({ erase }) => {
+              deleteEmployee(erase)
+                .then(() => {
+                  console.log('The Employee has been deleted!')
+                  contCheck()
+                })
+            })
+        })
+        .catch(err => console.log(err))
       break;
     case 'Filter Employees by Manager':
       viewManagers()
-      .then(managers => {
-        console.table(managers)
-        prompt({
-          type: 'list',
-          name: 'managerid',
-          message: 'Which Manager do you want to filter by?',
-          choices: managers.map(manager => ({
-            name: `${manager.first_name} ${manager.last_name}`,
-            value: manager.id
-          }))
-        })
-        .then(({managerid}) => {
-          viewEmployeesByManagers(managerid)
-          .then(employeeManager => {
-            console.table(employeeManager)
-            contCheck()
+        .then(managers => {
+          console.table(managers)
+          prompt({
+            type: 'list',
+            name: 'managerid',
+            message: 'Which Manager do you want to filter by?',
+            choices: managers.map(manager => ({
+              name: `${manager.first_name} ${manager.last_name}`,
+              value: manager.id
+            }))
           })
+            .then(({ managerid }) => {
+              viewEmployeesByManagers(managerid)
+                .then(employeeManager => {
+                  console.table(employeeManager)
+                  contCheck()
+                })
+            })
         })
-      })
-      .catch(err => console.log(err))
+        .catch(err => console.log(err))
       break;
     default:
       menuMain()
@@ -349,6 +350,12 @@ const newEmployee = () => {
     .then(roles => {
       viewManagers()
         .then(managers => {
+          let options = (managers.map(manager => ({
+            name: `${manager.first_name} ${manager.last_name}`,
+            value: manager.id
+          })))
+          options = options.concat([{ name: 'none', value: null }])
+          console.log(options)
           prompt([
             {
               type: 'input',
@@ -373,10 +380,7 @@ const newEmployee = () => {
               type: 'list',
               name: 'manager_id',
               message: 'Who is the employee\'s manager? (Choose none if the employee has no manager)',
-              choices: managers.map(manager => ({
-                name: `${manager.first_name} ${manager.last_name}`,
-                value: manager.id
-              }))
+              choices: options
             }
           ])
             .then(employee => {
@@ -389,4 +393,117 @@ const newEmployee = () => {
         })
     })
 }
+
+// update function
+const patchDepartment = () => {
+  getDepartments()
+    .then(departments => {
+      prompt([
+        {
+          type: 'list',
+          name: 'id',
+          message: 'What Department name would you like to update?',
+          choices: departments.map(department => ({
+            name: department.name,
+            value: department.id
+          }))
+        },
+        {
+          type: 'input',
+          name: 'name',
+          message: 'What would you like to update the Department name to?'
+        }
+      ])
+        .then(department => {
+          updateDepartment(department.id, { name: department.name })
+            .then(() => {
+              contCheck()
+            })
+        })
+    })
+}
+
+// update function
+const patchRole = () => {
+  getRoles()
+    .then(roles => {
+      prompt([
+        {
+          type: 'list',
+          name: 'id',
+          message: 'What role would you like to update?',
+          choices: roles.map(role => ({
+            name: role.title,
+            value: role.id
+          }))
+        },
+        {
+          type: 'list',
+          name: 'type',
+          message: 'What about the role would you like to update?',
+          choices: ['Title', 'Salary', 'Department']
+        }
+      ])
+        .then(role => {
+          switch (role.type) {
+            case 'Title':
+              prompt({
+                type: 'input',
+                name: 'value',
+                message: 'What would you like to update the role\'s title to?'
+              })
+                .then(rolev => {
+                  updateRole(role.id, { title: rolev.value })
+                    .then(() => {
+                      console.log('Role has been updated!')
+                      contCheck()
+                    })
+                })
+              break;
+            case 'Salary':
+              prompt({
+                type: 'input',
+                name: 'value',
+                message: 'What would you like to update the role\'s salary to?'
+              })
+                .then(rolev => {
+                  updateRole(role.id, { salary: rolev.value })
+                    .then(() => {
+                      console.log('Role has been updated!')
+                      contCheck()
+                    })
+                })
+              break;
+            case 'Department':
+              getDepartments()
+                .then(departments => {
+                  prompt({
+                    type: 'list',
+                    name: 'value',
+                    message: 'What would you like to update the role\'s department to?',
+                    choices: departments.map(department => ({
+                      name: department.name,
+                      value: department.id
+                    }))
+                  })
+                    .then(rolev => {
+                      updateRole(role.id, { department_id: rolev.value })
+                        .then(() => {
+                          console.log('Role has been updated!')
+                          contCheck()
+                        })
+                    })
+                })
+            break;
+          }
+        })
+    })
+    .catch(err => console.log(err))
+}
+
+// update function
+const patchEmployees = () => {
+
+}
+
 menuMain()
