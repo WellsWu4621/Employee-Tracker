@@ -494,7 +494,7 @@ const patchRole = () => {
                         })
                     })
                 })
-            break;
+              break;
           }
         })
     })
@@ -503,7 +503,102 @@ const patchRole = () => {
 
 // update function
 const patchEmployees = () => {
-
+  getEmployees()
+    .then(employees => {
+      prompt([
+        {
+          type: 'list',
+          name: 'id',
+          message: 'Which Employee would you like to update?',
+          choices: employees.map(employee => ({
+            name: `${employee.first_name} ${employee.last_name}`,
+            value: employee.id
+          }))
+        },
+        {
+          type: 'list',
+          name: 'type',
+          message: 'What about the employee would you like to update?',
+          choices: ['First Name', 'Last Name', 'Role', 'Manager']
+        }
+      ])
+        .then(employee => {
+          switch (employee.type) {
+            case 'First Name':
+              prompt({
+                type: 'input',
+                name: 'value',
+                message: 'What is the new name?'
+              })
+                .then(({ value }) => {
+                  updateEmployee(employee.id, { first_name: value })
+                    .then(() => {
+                      console.log('Employee has been updated')
+                      contCheck()
+                    })
+                })
+              break;
+            case 'Last Name':
+              prompt({
+                type: 'input',
+                name: 'value',
+                message: 'What is the new name?'
+              })
+                .then(({ value }) => {
+                  updateEmployee(employee.id, { last_name: value })
+                    .then(() => {
+                      console.log('Employee has been updated')
+                      contCheck()
+                    })
+                })
+              break;
+            case 'Role':
+              getRoles()
+                .then(roles => {
+                  prompt({
+                    type: 'list',
+                    name: 'value',
+                    message: 'What is the Employee\'s new Role?',
+                    choices: roles.map(role => ({
+                      name: role.name,
+                      value: role.id
+                    }))
+                  })
+                    .then(({ value }) => {
+                      updateEmployee(employee.id, { role_id: value })
+                        .then(() => {
+                          console.log('Employee has been updated')
+                          contCheck()
+                        })
+                    })
+                })
+              break;
+            case 'Manager':
+              viewManagers()
+                .then(managers => {
+                  let options = (managers.map(manager => ({
+                    name: `${manager.first_name} ${manager.last_name}`,
+                    value: manager.id
+                  })))
+                  prompt({
+                    type: 'list',
+                    name: 'value',
+                    message: 'Who is the Employee\'s new manager? (choose none if no manager/is a manager)',
+                    choices: options
+                  })
+                    .then(({ value }) => {
+                      updateEmployee(employee.id, { manager_id: value })
+                        .then(() => {
+                          console.log('Employee has been updated')
+                          contCheck()
+                        })
+                    })
+                })
+              break;
+          }
+        })
+    })
+    .catch(err => console.log(err))
 }
 
 menuMain()
