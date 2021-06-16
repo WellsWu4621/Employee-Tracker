@@ -24,7 +24,7 @@ const Department = {
       sum += parseInt(salaries[i].salary)
     }
     console.log(sum)
-  }
+  },
 }
 
 module.exports = Department
