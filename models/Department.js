@@ -19,11 +19,12 @@ const Department = {
   },
   async salaryCheck (id) {
     const salaries = await orm.departmentSalaryTable(id)
+    console.table(salaries)
     let sum = 0
     for (let i = 0; i < salaries.length; i++) {
       sum += parseInt(salaries[i].salary)
     }
-    console.log(sum)
+    return sum
   },
 }
 

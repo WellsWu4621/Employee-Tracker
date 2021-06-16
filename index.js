@@ -1,5 +1,5 @@
-const db = require('./db')
 const { prompt } = require('inquirer')
+const db = require('./db')
 require('console.table')
 
 const {
@@ -33,13 +33,196 @@ const contCheck = () => {
     name: 'choice',
     message: 'Would you like to continue?'
   })
-    .then(({ choice }) => choice ? mainMenu() : process.exit())
+    .then(({ choice }) => choice ? menuMain() : process.exit())
     .catch(err => console.log(err))
 }
 
 // main menu 
-const mainMenu = () => {
-  
+const menuMain = () => {
+  prompt({
+    type: 'list',
+    name: 'option',
+    message: 'What would you like to view?',
+    choices: ['Departments', 'Roles', 'Employees', 'Exit']
+  })
+    .then(({ option }) => {
+      switch (option) {
+        case 'Departments':
+          getDepartments()
+            .then(departments => {
+              console.table(departments)
+              menuBasic('Employee Salaries in a Department', option)
+            })
+          break;
+        case 'Roles':
+          getRoles()
+            .then(roles => {
+              console.table(roles)
+              menuBasic('none', option)
+            })
+          break;
+        case 'Employees':
+          getEmployees()
+            .then(employees => {
+              console.table(employees)
+              menuBasic('Filter Employees by Manager', option)
+            })
+          break;
+        default:
+          process.exit()
+          break;
+      }
+    })
+    .catch(err => console.log(err))
+}
+
+// Basic Menu
+const menuBasic = (additional, option) => {
+  let menuBasicChoices = ['View', 'Add', 'Update', 'Delete', 'Go Back']
+  if (additional !== 'none') {
+    menuBasicChoices = ['View', 'Add', 'Update', 'Delete', additional, 'Go Back']
+  }
+  prompt({
+    type: 'list',
+    name: 'action',
+    message: `What would you like to do in ${option}`,
+    choices: menuBasicChoices
+  })
+    .then(({ action }) => {
+      switch (option) {
+        case 'Departments':
+          menuDepartments(action)
+          break;
+        case 'Roles':
+          menuRoles(action)
+          break;
+        case 'Employees':
+          menuEmployees(action)
+          break;
+        default:
+          menuMain()
+          break;
+      }
+    })
+    .catch(err => console.log(err))
+}
+
+// Department choice menu
+const menuDepartments = (action) => {
+  switch (action) {
+    case 'View':
+      getDepartments()
+        .then(departments => {
+          console.table(departments)
+        })
+      break;
+    case 'Add':
+      newDepartment()
+      break;
+    case 'Update':
+      patchDepartment()
+      break;
+    case 'Delete':
+      eraseDepartment()
+      break;
+    case 'Employee Salaries in a Department':
+      getDepartments()
+        .then(departments => {
+          console.table(departments)
+          prompt({
+            type: 'list',
+            name: 'departmentid',
+            message: 'Which Department\'s Salary would you like to check?',
+            choices: departments.map(department => ({
+              name: department.name,
+              value: department.id
+            }))
+          })
+          .then(({departmentid}) => {
+            salaryCheck(departmentid)
+              .then(amount => {
+                console.log(`These employees total to $${amount}`)
+                contCheck()
+              })
+          })
+        })
+        .catch(err => console.log(err))
+      break;
+    default:
+      menuMain()
+      break;
+  }
+}
+
+// Role choice menu
+const menuRoles = (action) => {
+    switch (action) {
+    case 'View':
+      getRoles()
+        .then(roles => {
+          console.table(roles)
+        })
+      break;
+    case 'Add':
+      newRole()
+      break;
+    case 'Update':
+      patchRole()
+      break;
+    case 'Delete':
+      eraseRole()
+      break;
+    default:
+      menuMain()
+      break;
+  }
+}
+
+// Employee choice menu
+const menuEmployees = (action) => {
+    switch (action) {
+    case 'View':
+      getEmployeess()
+        .then(employeess => {
+          console.table(employeess)
+        })
+      break;
+    case 'Add':
+      newEmployees()
+      break;
+    case 'Update':
+      patchEmployees()
+      break;
+    case 'Delete':
+      eraseEmployees()
+      break;
+    case 'Filter Employees by Manager':
+      viewManagers()
+      .then(managers => {
+        console.table(managers)
+        prompt({
+          type: 'list',
+          name: 'managerid',
+          message: 'Which Manager do you want to filter by?',
+          choices: managers.map(manager => ({
+            name: `${manager.first_name} ${manager.last_name}`,
+            value: manager.id
+          }))
+        })
+        .then(({managerid}) => {
+          viewEmployeesByManagers(managerid)
+          .then(employeeManager => {
+            console.table(employeeManager)
+            contCheck()
+          })
+        })
+      })
+      .catch(err => console.log(err))
+      break;
+    default:
+      menuMain()
+      break;
+  }
 }
 
 // make a new Department
@@ -144,4 +327,4 @@ const newEmployee = () => {
         })
     })
 }
-
+menuMain()
